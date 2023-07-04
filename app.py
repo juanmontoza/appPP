@@ -2,9 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from bokeh.plotting import figure
-from bokeh.models import HoverTool
 import numpy as np
+import mplcursors
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -63,24 +62,45 @@ if file is not None:
             df.loc[1:interval_y, 'derivative'] = np.nan
             df.loc[interval_y + 1:, 'derivative'] = derivative_values
 
-    # Create the plot using bokeh
-    p = figure(plot_width=600, plot_height=400)
+    # Create the plot using Matplotlib
+    fig, ax = plt.subplots()
 
     if 'derivative' not in [x_col, y_col]:
-        p.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8)
+        points = ax.scatter(df[x_col], df[y_col], s=5, c='blue', alpha=0.8)
     else:
-        p.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8, legend_label='Original')
-        p.scatter(df[x_col], df['derivative'], size=5, fill_color='red', alpha=0.8, legend_label='Derivative')
+        original_points = ax.scatter(df[x_col], df[y_col], s=5, c='blue', alpha=0.8, label='Original')
+        derivative_points = ax.scatter(df[x_col], df['derivative'], s=5, c='red', alpha=0.8, label='Derivative')
 
-    hover_tool = HoverTool(
-        tooltips=[
-            (x_col, '@' + x_col),
-            (y_col, '@' + y_col)
-        ]
-    )
-    p.add_tools(hover_tool)
+    ax.legend(loc='upper left')
+    ax.set_xlabel(x_col)
+    ax.set_ylabel(y_col)
 
-    p.legend.location = 'top_left'
-    p.legend.click_policy = 'hide'
+    cursor = mplcursors.cursor(points)
 
-    st.bokeh_chart(p)
+    @cursor.connect("add")
+    def on_add(sel):
+        index = sel.target.index
+        x_value = df.loc[index, x_col]
+        y_value = df.loc[index, y_col]
+        sel.annotation.set_text(f"{x_col}: {x_value:.2f}, {y_col}: {y_value:.2f}")
+
+    if 'derivative' in [x_col, y_col]:
+        cursor_original = mplcursors.cursor(original_points)
+
+        @cursor_original.connect("add")
+        def on_add_original(sel):
+            index = sel.target.index
+            x_value = df.loc[index, x_col]
+            y_value = df.loc[index, y_col]
+            sel.annotation.set_text(f"{x_col}: {x_value:.2f}, {y_col}: {y_value:.2f}")
+
+        cursor_derivative = mplcursors.cursor(derivative_points)
+
+        @cursor_derivative.connect("add")
+        def on_add_derivative(sel):
+            index = sel.target.index
+            x_value = df.loc[index, x_col]
+            derivative_value = df.loc[index, 'derivative']
+            sel.annotation.set_text(f"{x_col}: {x_value:.2f}, Derivative: {derivative_value:.2f}")
+
+    st.pyplot(fig)
