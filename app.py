@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-import mplcursors
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -28,8 +27,10 @@ if file is not None:
         with st.sidebar:
             st.write('### Derivative Options for X Axis')
             # Add additional input fields for derivative calculation
-            original_col_x = st.selectbox('Select the original column for the derivative (X axis)', df.columns, key='original_col_x')
-            interval_x = st.number_input('Select the interval for derivative calculation (X axis)', min_value=1, value=10, key='interval_x')
+            original_col_x = st.selectbox('Select the original column for the derivative (X axis)', df.columns,
+                                          key='original_col_x')
+            interval_x = st.number_input('Select the interval for derivative calculation (X axis)', min_value=1,
+                                         value=10, key='interval_x')
 
         # Let the user select the column for the y axis
         y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
@@ -42,8 +43,10 @@ if file is not None:
         with st.sidebar:
             st.write('### Derivative Options for Y Axis')
             # Add additional input fields for derivative calculation
-            original_col_y = st.selectbox('Select the original column for the derivative (Y axis)', df.columns, key='original_col_y')
-            interval_y = st.number_input('Select the interval for derivative calculation (Y axis)', min_value=1, value=10, key='interval_y')
+            original_col_y = st.selectbox('Select the original column for the derivative (Y axis)', df.columns,
+                                          key='original_col_y')
+            interval_y = st.number_input('Select the interval for derivative calculation (Y axis)', min_value=1,
+                                         value=10, key='interval_y')
 
         # Let the user select the column for the x axis
         x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns, key='x_col_y')
@@ -52,55 +55,40 @@ if file is not None:
     if 'derivative' in [x_col, y_col]:
         if x_col == 'derivative':
             # Calculate the derivative for x_col
-            derivative_values = (df[original_col_x].shift(-interval_x) - df[original_col_x]) / (df[y_col].shift(-interval_x) - df[y_col])
+            derivative_values = (df[original_col_x].shift(-interval_x) - df[original_col_x]) / (
+                        df[y_col].shift(-interval_x) - df[y_col])
             df.loc[1:interval_x, 'derivative'] = np.nan
             df.loc[interval_x + 1:, 'derivative'] = derivative_values
 
         if y_col == 'derivative':
             # Calculate the derivative for y_col
-            derivative_values = (df[x_col].shift(-interval_y) - df[x_col]) / (df[original_col_y].shift(-interval_y) - df[original_col_y])
+            derivative_values = (df[x_col].shift(-interval_y) - df[x_col]) / (
+                        df[original_col_y].shift(-interval_y) - df[original_col_y])
             df.loc[1:interval_y, 'derivative'] = np.nan
             df.loc[interval_y + 1:, 'derivative'] = derivative_values
 
-    # Create the plot using Matplotlib
+    # Create the plot using Seaborn
     fig, ax = plt.subplots()
 
     if 'derivative' not in [x_col, y_col]:
-        points = ax.scatter(df[x_col], df[y_col], s=5, c='blue', alpha=0.8)
+        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax)
     else:
-        original_points = ax.scatter(df[x_col], df[y_col], s=5, c='blue', alpha=0.8, label='Original')
-        derivative_points = ax.scatter(df[x_col], df['derivative'], s=5, c='red', alpha=0.8, label='Derivative')
+        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax, label='Original')
+        sns.scatterplot(data=df, x=x_col, y='derivative', ax=ax, label='Derivative')
 
     ax.legend(loc='upper left')
     ax.set_xlabel(x_col)
     ax.set_ylabel(y_col)
 
-    cursor = mplcursors.cursor(points)
-
-    @cursor.connect("add")
-    def on_add(sel):
-        index = sel.target.index
-        x_value = df.loc[index, x_col]
-        y_value = df.loc[index, y_col]
-        sel.annotation.set_text(f"{x_col}: {x_value:.2f}, {y_col}: {y_value:.2f}")
-
+    # Add hover text using Streamlit's hover functionality
+    hover_data = df[[x_col, y_col]]
     if 'derivative' in [x_col, y_col]:
-        cursor_original = mplcursors.cursor(original_points)
+        hover_data['Derivative'] = df['derivative']
 
-        @cursor_original.connect("add")
-        def on_add_original(sel):
-            index = sel.target.index
-            x_value = df.loc[index, x_col]
-            y_value = df.loc[index, y_col]
-            sel.annotation.set_text(f"{x_col}: {x_value:.2f}, {y_col}: {y_value:.2f}")
+    hover_columns = [x_col, y_col] + (['Derivative'] if 'derivative' in [x_col, y_col] else [])
 
-        cursor_derivative = mplcursors.cursor(derivative_points)
+    hover_format = {}
+    for column in hover_columns:
+        hover_format[column] = '.2f'
 
-        @cursor_derivative.connect("add")
-        def on_add_derivative(sel):
-            index = sel.target.index
-            x_value = df.loc[index, x_col]
-            derivative_value = df.loc[index, 'derivative']
-            sel.annotation.set_text(f"{x_col}: {x_value:.2f}, Derivative: {derivative_value:.2f}")
-
-    st.pyplot(fig)
+    st.pyplot(fig, hover_data=hover_data, hover_columns=hover_columns, hover_format=hover_format)
