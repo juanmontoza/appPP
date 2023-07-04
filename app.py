@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import mplcursors
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -63,5 +64,14 @@ if file is not None:
 
     # Create the plot
     fig, ax = plt.subplots()
-    sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax)
+    scatterplot = sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax)
+
+    # Add mplcursors to display (x, y) values on hover
+    mplcursor = mplcursors.cursor(scatterplot)
+    mplcursor.connect("add", lambda sel: sel.annotation.set_text(f"x: {sel.target[0]:.2f}, y: {sel.target[1]:.2f}"))
+
+    # Hide the table
+    st.table(df.head(0))
+
+    # Display the plot
     st.pyplot(fig)
