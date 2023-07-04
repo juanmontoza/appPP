@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import seaborn as sns
-import numpy as np
 import matplotlib.pyplot as plt
 import mplcursors
+import numpy as np
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -66,14 +66,10 @@ if file is not None:
     if 'derivative' not in [x_col, y_col]:
         fig, ax = plt.subplots()
         sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax)
-    else:
-        fig, ax = plt.subplots()
-        sns.scatterplot(data=df, x=x_col, y=y_col, label='Original', ax=ax)
-        sns.scatterplot(data=df, x=x_col, y='derivative', label='Derivative', ax=ax)
-
-    # Add the hover functionality
-    points = ax.get_children()[0]
-    cursor = mplcursors.cursor(points)
-    cursor.connect("add", lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})"))
-
-    st.pyplot(fig)
+        points = ax.collections[0]
+        cursor = mplcursors.cursor(points)
+        cursor.connect(
+            "add",
+            lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
+        )
+        st.pyplot(fig)
