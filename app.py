@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -15,6 +16,9 @@ file = st.sidebar.file_uploader('Upload your Excel file', type=['xlsx', 'xls', '
 if file is not None:
     # Load the file into a pandas DataFrame
     df = pd.read_excel(file)
+
+    # Create a "blanc" column named "derivative"
+    df['derivative'] = np.nan
 
     # Let the user select the columns for the x and y axes
     x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns)
