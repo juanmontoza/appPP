@@ -1,10 +1,8 @@
+import mplcursors
 import streamlit as st
 import pandas as pd
-from bokeh.plotting import figure
-from bokeh.models import HoverTool
-from bokeh.layouts import row
+import matplotlib.pyplot as plt
 import numpy as np
-import math
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -60,61 +58,50 @@ if file is not None:
         tvida_values = df[original_col].shift(-interval) - df[original_col]
 
         angle_of_attack_values = (np.arctan2(um_values + dup_values, interval) - np.arctan2(tvida_values, interval)) * (
-                    180 / math.pi)
+                    180 / np.pi)
         df.loc[1:interval, 'Angle of Attack'] = np.nan
         df.loc[interval + 1:, 'Angle of Attack'] = angle_of_attack_values
 
-    # Create the first plot using bokeh
-    p1 = figure(plot_width=600, plot_height=400)
+    # Create the first plot using Matplotlib
+    fig, ax = plt.subplots()
 
     if 'derivative' not in [x_col, y_col] and 'Angle of Attack' not in [x_col, y_col]:
-        p1.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8)
+        ax.scatter(df[x_col], df[y_col], s=5, color='blue', alpha=0.8)
     else:
         if 'derivative' in [x_col, y_col]:
-            p1.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8, legend_label='Original')
-            p1.scatter(df[x_col], df['derivative'], size=5, fill_color='red', alpha=0.8, legend_label='Derivative')
+            ax.scatter(df[x_col], df[y_col], s=5, color='blue', alpha=0.8, label='Original')
+            ax.scatter(df[x_col], df['derivative'], s=5, color='red', alpha=0.8, label='Derivative')
 
         if 'Angle of Attack' in [x_col, y_col]:
-            p1.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8, legend_label='Original')
-            p1.scatter(df[x_col], df['Angle of Attack'], size=5, fill_color='green', alpha=0.8,
-                       legend_label='Angle of Attack')
+            ax.scatter(df[x_col], df[y_col], s=5, color='blue', alpha=0.8, label='Original')
+            ax.scatter(df[x_col], df['Angle of Attack'], s=5, color='green', alpha=0.8, label='Angle of Attack')
 
-    hover_tool = HoverTool(
-        tooltips=[
-            (x_col, '@' + x_col),
-            (y_col, '@' + y_col)
-        ]
-    )
-    p1.add_tools(hover_tool)
+        ax.legend()
 
-    p1.legend.location = 'top_left'
-    p1.legend.click_policy = 'hide'
+    ax.set_xlabel(x_col)
+    ax.set_ylabel(y_col)
 
-    # Add the second plot if "Add additional plot" is selected
+    # Add hover functionality to display (x, y) values on mouse hover
+    cursor = mplcursors.cursor(ax, hover=True)
+    cursor.connect("add", lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})"))
+
+    st.pyplot(fig)
+
+    # Create the second plot if "Add additional plot" is selected
     if add_additional_plot:
         x_col_additional = st.sidebar.selectbox('Select the column for the additional plot (X axis)', df.columns,
                                                 key='x_col_additional')
         y_col_additional = st.sidebar.selectbox('Select the column for the additional plot (Y axis)', df.columns,
                                                 key='y_col_additional')
 
-        p2 = figure(plot_width=600, plot_height=400)
+        fig_additional, ax_additional = plt.subplots()
+        ax_additional.scatter(df[x_col_additional], df[y_col_additional], s=5, color='green', alpha=0.8)
+        ax_additional.set_xlabel(x_col_additional)
+        ax_additional.set_ylabel(y_col_additional)
 
-        p2.scatter(df[x_col_additional], df[y_col_additional], size=5, fill_color='green', alpha=0.8,
-                   legend_label='Additional Plot')
+        # Add hover functionality to display (x, y) values on mouse hover for the additional plot
+        cursor_additional = mplcursors.cursor(ax_additional, hover=True)
+        cursor_additional.connect("add",
+                                  lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})"))
 
-        hover_tool_additional = HoverTool(
-            tooltips=[
-                (x_col_additional, '@' + x_col_additional),
-                (y_col_additional, '@' + y_col_additional)
-            ]
-        )
-        p2.add_tools(hover_tool_additional)
-
-        p2.legend.location = 'top_left'
-        p2.legend.click_policy = 'hide'
-
-        # Display both plots
-        st.bokeh_chart(row(p1, p2))
-    else:
-        # Display only the first plot
-        st.bokeh_chart(p1)
+        st.pyplot(fig_additional)
