@@ -56,7 +56,7 @@ if file is not None:
         df.loc[interval + 1:, 'Angle of Attack'] = angle_of_attack_values
 
     # Show the first few rows of the DataFrame
-    st.write(df.head())
+    st.write(df)
 
     # Create the first plot using Matplotlib
     fig, ax = plt.subplots()
