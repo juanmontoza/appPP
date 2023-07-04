@@ -47,7 +47,7 @@ if file is not None:
 
     # Calculate the Angle of Attack if selected
     if 'Angle of Attack' in [x_col, y_col]:
-        um_values = df['UM'].shift(-interval) + df['DUP'].iloc[0] - (df['UM'] + df['DUP'].iloc[0])
+        um_values = df['UM'].shift(-interval) + df['DUP'].iloc[0] - (df['UM'].iloc[0] + df['DUP'].iloc[0])
         tvida_values = df['TVDa'].shift(-interval) - df['TVDa'].iloc[0]
         mda_values = df['MDa'].shift(-interval) - df['MDa'].iloc[0]
 
