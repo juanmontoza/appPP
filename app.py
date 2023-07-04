@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Title of the app
-st.title('Excel Data Plotter')
+st.title('Pluspetrol Template')
 
 # Add a sidebar
 st.sidebar.title('Options')
@@ -15,9 +15,6 @@ file = st.sidebar.file_uploader('Upload your Excel file', type=['xlsx', 'xls', '
 if file is not None:
     # Load the file into a pandas DataFrame
     df = pd.read_excel(file)
-
-    # Show the first few rows of the DataFrame
-    st.write(df.head())
 
     # Let the user select the columns for the x and y axes
     x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns)
