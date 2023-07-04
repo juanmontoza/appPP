@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from bokeh.plotting import figure
 from bokeh.models import HoverTool
 import numpy as np
@@ -62,7 +64,7 @@ if file is not None:
             df.loc[interval_y + 1:, 'derivative'] = derivative_values
 
     # Create the plot using bokeh
-    p = figure(plot_width=600, plot_height=400, tooltips=[(x_col, '@x'), (y_col, '@y')])
+    p = figure(plot_width=600, plot_height=400)
 
     if 'derivative' not in [x_col, y_col]:
         p.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8)
