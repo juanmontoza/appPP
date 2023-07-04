@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -38,6 +39,9 @@ if file is not None:
             df.loc[1:interval, 'derivative'] = np.nan
             df.loc[interval + 1:, 'derivative'] = derivative_values
 
+            # Convert derivative to degrees
+            df['derivative'] = np.degrees(df['derivative'])
+
     # Create the plot using Matplotlib
     fig, ax = plt.subplots()
 
@@ -45,7 +49,7 @@ if file is not None:
         derivative_col = 'derivative' if x_col != 'derivative' else y_col
         ax.scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
         ax.set_xlabel(x_col)
-        ax.set_ylabel('Derivative of {}'.format(y_col if y_col != 'derivative' else x_col))
+        ax.set_ylabel('Derivative of {} (degrees)'.format(y_col if y_col != 'derivative' else x_col))
     else:
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
