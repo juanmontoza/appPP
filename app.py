@@ -24,21 +24,39 @@ if file is not None:
     x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns)
     y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns)
 
+    if x_col == 'derivative':
+        with st.sidebar:
+            st.write('### Derivative Options for X Axis')
+            # Add additional input fields for derivative calculation
+            original_col_x = st.selectbox('Select the original column for the derivative (X axis)', df.columns, key='original_col_x')
+            interval_x = st.number_input('Select the interval for derivative calculation (X axis)', min_value=1, value=10, key='interval_x')
+
+        # Let the user select the column for the y axis
+        y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns)
+
+    if y_col == 'derivative':
+        with st.sidebar:
+            st.write('### Derivative Options for Y Axis')
+            # Add additional input fields for derivative calculation
+            original_col_y = st.selectbox('Select the original column for the derivative (Y axis)', df.columns, key='original_col_y')
+            interval_y = st.number_input('Select the interval for derivative calculation (Y axis)', min_value=1, value=10, key='interval_y')
+
+        # Let the user select the column for the x axis
+        x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns)
+
     # Check if the user selected "derivative" for x_col or y_col
     if 'derivative' in [x_col, y_col]:
-        # Add additional input fields for derivative calculation
-        original_col = st.sidebar.selectbox('Select the original column for the derivative', df.columns)
-        interval = st.sidebar.number_input('Select the interval for derivative calculation', min_value=1, value=10)
+        if x_col == 'derivative':
+            # Calculate the derivative for x_col
+            derivative_values = (df[original_col_x].shift(-interval_x) - df[original_col_x]) / (df[y_col].shift(-interval_x) - df[y_col])
+            df.loc[1:interval_x, 'derivative'] = np.nan
+            df.loc[interval_x + 1:, 'derivative'] = derivative_values
 
-        # Calculate the derivative
-        derivative_values = (df[original_col].shift(-interval) - df[original_col]) / (df[y_col].shift(-interval) - df[y_col])
-
-        # Update the DataFrame with the derivative values
-        df['derivative'] = derivative_values
-
-        # Update the y_col selection to include 'derivative'
-        y_col_options = list(df.columns)
-        y_col = st.sidebar.selectbox('Select the column for the y axis', y_col_options)
+        if y_col == 'derivative':
+            # Calculate the derivative for y_col
+            derivative_values = (df[x_col].shift(-interval_y) - df[x_col]) / (df[original_col_y].shift(-interval_y) - df[original_col_y])
+            df.loc[1:interval_y, 'derivative'] = np.nan
+            df.loc[interval_y + 1:, 'derivative'] = derivative_values
 
     # Create the plot
     fig, ax = plt.subplots()
