@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+from bokeh.plotting import figure
+from bokeh.models import HoverTool
 import numpy as np
-import mplcursors
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -62,16 +61,24 @@ if file is not None:
             df.loc[1:interval_y, 'derivative'] = np.nan
             df.loc[interval_y + 1:, 'derivative'] = derivative_values
 
-    # Create the plot
-    fig, ax = plt.subplots()
-    scatterplot = sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax)
+    # Create the plot using bokeh
+    p = figure(plot_width=600, plot_height=400, tooltips=[(x_col, '@x'), (y_col, '@y')])
 
-    # Add mplcursors to display (x, y) values on hover
-    mplcursor = mplcursors.cursor(scatterplot)
-    mplcursor.connect("add", lambda sel: sel.annotation.set_text(f"x: {sel.target[0]:.2f}, y: {sel.target[1]:.2f}"))
+    if 'derivative' not in [x_col, y_col]:
+        p.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8)
+    else:
+        p.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8, legend_label='Original')
+        p.scatter(df[x_col], df['derivative'], size=5, fill_color='red', alpha=0.8, legend_label='Derivative')
 
-    # Hide the table
-    st.table(df.head(0))
+    hover_tool = HoverTool(
+        tooltips=[
+            (x_col, '@' + x_col),
+            (y_col, '@' + y_col)
+        ]
+    )
+    p.add_tools(hover_tool)
 
-    # Display the plot
-    st.pyplot(fig)
+    p.legend.location = 'top_left'
+    p.legend.click_policy = 'hide'
+
+    st.bokeh_chart(p)
