@@ -60,8 +60,9 @@ if file is not None:
 
         if y_col == 'Angle of Attack':
             # Calculate the Angle of Attack for y_col
+            um_values = df['UM'].shift(-interval_y) - df['UM']
             tvida_values = df['TVDa'].shift(-interval_y) - df['TVDa']
-            angle_of_attack_values = (np.arctan2(interval_y, tvida_values) - np.arctan2(um_values, interval_y)) * (180 / math.pi)
+            angle_of_attack_values = (np.arctan2(um_values, interval_y) - np.arctan2(tvida_values, interval_y)) * (180 / math.pi)
             df.loc[1:interval_y, 'Angle of Attack'] = np.nan
             df.loc[interval_y + 1:, 'Angle of Attack'] = angle_of_attack_values
 
