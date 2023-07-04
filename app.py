@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -16,12 +16,24 @@ if file is not None:
     # Load the file into a pandas DataFrame
     df = pd.read_excel(file)
 
-    # Let the user select the columns for the x and y axes
-    x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns)
-    y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns)
+    # Get user input for interval and variable selection
+    interval_start = st.number_input('Interval Start', value=0.0)
+    interval_end = st.number_input('Interval End', value=1.0)
+    variable_options = list(file.columns)  # Assumes columns contain variable names
+    variable = st.selectbox('Variable', variable_options)
 
-    # Create the plot
+    # Filter the data within the specified interval
+    filtered_data = file[(file['x'] >= interval_start) & (file['x'] <= interval_end)]
+
+    # Calculate the derivative or rate of change
+    x_values = filtered_data['x']
+    y_values = filtered_data[variable]
+    derivatives = np.gradient(y_values, x_values)
+
+    # Create your plot using matplotlib or any other plotting library
     fig, ax = plt.subplots()
-    sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax)
-    st.pyplot(fig)
+    ax.plot(x_values, derivatives)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Derivative')
+    st.pyplot(fig)  # Display the plot in Streamlit
 
