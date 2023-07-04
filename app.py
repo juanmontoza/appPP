@@ -47,13 +47,16 @@ if file is not None:
 
     # Calculate the Angle of Attack if selected
     if 'Angle of Attack' in [x_col, y_col]:
-        um_values = df['UM'].shift(-interval) + df['DUP'].iloc[0] - (df['UM'].iloc[0] + df['DUP'].iloc[0])
+        um_values = df['UM'].shift(-interval) + df['DUP'].iloc[0] - (df['UM'] + df['DUP'].iloc[0])
         tvida_values = df['TVDa'].shift(-interval) - df['TVDa'].iloc[0]
         mda_values = df['MDa'].shift(-interval) - df['MDa'].iloc[0]
 
         angle_of_attack_values = (np.arctan2(um_values, mda_values) - np.arctan2(tvida_values, mda_values)) * (180 / np.pi)
         df.loc[1:interval, 'Angle of Attack'] = np.nan
         df.loc[interval + 1:, 'Angle of Attack'] = angle_of_attack_values
+
+    # Show the first few rows of the DataFrame
+    st.write(df.head())
 
     # Create the first plot using Matplotlib
     fig, ax = plt.subplots()
