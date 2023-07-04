@@ -35,7 +35,7 @@ if file is not None:
 
     else:
         # Let the user select the column for the y axis
-        y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns)
+        y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
 
     if y_col == 'derivative':
         with st.sidebar:
