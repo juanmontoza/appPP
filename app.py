@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import mplcursors
 import numpy as np
-import math
+
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -54,7 +54,7 @@ if file is not None:
             # Calculate the Angle of Attack for x_col
             um_values = df['UM'].shift(-interval_x) - df['UM']
             dup_values = df['DUP'].shift(-interval_x) - df['DUP']
-            angle_of_attack_values = (np.arctan2(um_values, interval_x) - np.arctan2(dup_values, interval_x)) * (180 / math.pi)
+            angle_of_attack_values = (np.arctan2(um_values, dup_values) - np.arctan2(interval_x, interval_x)) * (180 / np.pi)
             df.loc[1:interval_x, 'Angle of Attack'] = np.nan
             df.loc[interval_x + 1:, 'Angle of Attack'] = angle_of_attack_values
 
@@ -62,7 +62,7 @@ if file is not None:
             # Calculate the Angle of Attack for y_col
             um_values = df['UM'].shift(-interval_y) - df['UM']
             tvida_values = df['TVDa'].shift(-interval_y) - df['TVDa']
-            angle_of_attack_values = (np.arctan2(um_values, interval_y) - np.arctan2(tvida_values, interval_y)) * (180 / math.pi)
+            angle_of_attack_values = (np.arctan2(um_values, interval_y) - np.arctan2(tvida_values, interval_y)) * (180 / np.pi)
             df.loc[1:interval_y, 'Angle of Attack'] = np.nan
             df.loc[interval_y + 1:, 'Angle of Attack'] = angle_of_attack_values
 
