@@ -62,12 +62,12 @@ if file is not None:
             # Calculate the Angle of Attack for y_col
             um_values = df['UM'].shift(-interval_y) - df['UM']
             tvida_values = df['TVDa'].shift(-interval_y) - df['TVDa']
-            angle_of_attack_values = (np.arctan2(um_values, interval_y) - np.arctan2(tvida_values, interval_y)) * (180 / np.pi)
+            angle_of_attack_values = (np.arctan2(interval_y, tvida_values) - np.arctan2(um_values, interval_y)) * (180 / np.pi)
             df.loc[1:interval_y, 'Angle of Attack'] = np.nan
             df.loc[interval_y + 1:, 'Angle of Attack'] = angle_of_attack_values
 
     # Create the first plot using Seaborn
-    fig1, ax1 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(8, 6))
     if 'Angle of Attack' not in [x_col, y_col]:
         sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax1)
     else:
@@ -82,24 +82,33 @@ if file is not None:
     )
 
     # Create the second plot using Seaborn
-    fig2, ax2 = plt.subplots()
-    if 'Angle of Attack' not in [x_col, y_col]:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax2)
+    if st.checkbox('Add additional plot'):
+        # Let the user select the columns for the x and y axes for the additional plot
+        x_col_additional = st.sidebar.selectbox('Select the column for the x axis (Additional Plot)', df.columns, key='x_col_additional')
+        y_col_additional = st.sidebar.selectbox('Select the column for the y axis (Additional Plot)', df.columns, key='y_col_additional')
+
+        # Calculate the Angle of Attack for the additional plot
+        um_values_additional = df['UM'].shift(-interval_x) - df['UM']
+        dup_values_additional = df['DUP'].shift(-interval_x) - df['DUP']
+        angle_of_attack_values_additional = (np.arctan2(um_values_additional, dup_values_additional) - np.arctan2(interval_x, interval_x)) * (180 / np.pi)
+        df['Angle of Attack Additional'] = np.nan
+        df.loc[1:interval_x, 'Angle of Attack Additional'] = angle_of_attack_values_additional
+
+        fig2, ax2 = plt.subplots(figsize=(8, 6))
+        sns.scatterplot(data=df, x=x_col_additional, y=y_col_additional, ax=ax2)
+        sns.scatterplot(data=df, x=x_col_additional, y='Angle of Attack Additional', ax=ax2, label='Angle of Attack Additional')
+
+        points2 = ax2.collections[0]
+        cursor2 = mplcursors.cursor(points2)
+        cursor2.connect(
+            "add",
+            lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
+        )
+
+        # Arrange the plots in a 2-column layout
+        col1, col2 = st.columns(2)
+        col1.pyplot(fig1)
+        col2.pyplot(fig2)
     else:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax2, label='Original')
-        sns.scatterplot(data=df, x=x_col, y='Angle of Attack', ax=ax2, label='Angle of Attack')
-
-    points2 = ax2.collections[0]
-    cursor2 = mplcursors.cursor(points2)
-    cursor2.connect(
-        "add",
-        lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
-    )
-
-    # Render the plots using Streamlit columns
-    col1, col2 = st.columns(2)
-    with col1:
+        # Render only the first plot
         st.pyplot(fig1)
-
-    with col2:
-        st.pyplot(fig2)
