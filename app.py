@@ -45,7 +45,7 @@ if file is not None:
             interval_y = st.number_input('Select the interval for derivative calculation (Y axis)', min_value=1, value=10, key='interval_y')
 
         # Let the user select the column for the x axis
-        x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns, key='x_col')
+        x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns, key='x_col_y')
 
     # Check if the user selected "derivative" for x_col or y_col
     if 'derivative' in [x_col, y_col]:
