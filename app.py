@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import mplcursors
 import numpy as np
-
+import math
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -66,18 +66,40 @@ if file is not None:
             df.loc[1:interval_y, 'Angle of Attack'] = np.nan
             df.loc[interval_y + 1:, 'Angle of Attack'] = angle_of_attack_values
 
-    # Create the plot using Seaborn
-    fig, ax = plt.subplots()
+    # Create the first plot using Seaborn
+    fig1, ax1 = plt.subplots()
     if 'Angle of Attack' not in [x_col, y_col]:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax)
+        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax1)
     else:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax, label='Original')
-        sns.scatterplot(data=df, x=x_col, y='Angle of Attack', ax=ax, label='Angle of Attack')
+        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax1, label='Original')
+        sns.scatterplot(data=df, x=x_col, y='Angle of Attack', ax=ax1, label='Angle of Attack')
 
-    points = ax.collections[0]
-    cursor = mplcursors.cursor(points)
-    cursor.connect(
+    points1 = ax1.collections[0]
+    cursor1 = mplcursors.cursor(points1)
+    cursor1.connect(
         "add",
         lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
     )
-    st.pyplot(fig)
+
+    # Create the second plot using Seaborn
+    fig2, ax2 = plt.subplots()
+    if 'Angle of Attack' not in [x_col, y_col]:
+        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax2)
+    else:
+        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax2, label='Original')
+        sns.scatterplot(data=df, x=x_col, y='Angle of Attack', ax=ax2, label='Angle of Attack')
+
+    points2 = ax2.collections[0]
+    cursor2 = mplcursors.cursor(points2)
+    cursor2.connect(
+        "add",
+        lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
+    )
+
+    # Render the plots using Streamlit columns
+    col1, col2 = st.columns(2)
+    with col1:
+        st.pyplot(fig1)
+
+    with col2:
+        st.pyplot(fig2)
