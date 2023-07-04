@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
+import seaborn as sns
 
 # Title of the app
-st.title('Pluspetrol Template')
+st.title('Excel Data Plotter')
 
 # Add a sidebar
 st.sidebar.title('Options')
@@ -16,24 +16,26 @@ if file is not None:
     # Load the file into a pandas DataFrame
     df = pd.read_excel(file)
 
-    # Get user input for interval and variable selection
-    interval_start = st.number_input('Interval Start', value=0.0)
-    interval_end = st.number_input('Interval End', value=1.0)
-    variable_options = list(file.columns)  # Assumes columns contain variable names
-    variable = st.selectbox('Variable', variable_options)
+    # Show the first few rows of the DataFrame
+    st.write(df.head())
 
-    # Filter the data within the specified interval
-    filtered_data = file[(file['x'] >= interval_start) & (file['x'] <= interval_end)]
+    # Let the user select the columns for the x and y axes
+    x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns)
+    y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns)
 
-    # Calculate the derivative or rate of change
-    x_values = filtered_data['x']
-    y_values = filtered_data[variable]
-    derivatives = np.gradient(y_values, x_values)
+    # Check if the user selected "derivative" for x_col or y_col
+    if x_col == 'derivative' or y_col == 'derivative':
+        # Add additional input fields for derivative calculation
+        original_col = st.sidebar.selectbox('Select the original column for the derivative', df.columns)
+        interval = st.sidebar.number_input('Select the interval for derivative calculation', min_value=1, value=10)
 
-    # Create your plot using matplotlib or any other plotting library
+        # Calculate the derivative
+        derivative_values = (df[original_col].shift(-interval) - df[original_col]) / (df[y_col].shift(-interval) - df[y_col])
+        df['derivative'] = derivative_values
+
+    # Create the plot
     fig, ax = plt.subplots()
-    ax.plot(x_values, derivatives)
-    ax.set_xlabel('X')
-    ax.set_ylabel('Derivative')
-    st.pyplot(fig)  # Display the plot in Streamlit
+    sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax)
+    st.pyplot(fig)
+
 
