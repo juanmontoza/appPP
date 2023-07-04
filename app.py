@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import mplcursors
+from bokeh.plotting import figure
+from bokeh.models import HoverTool
+from bokeh.layouts import row
 import numpy as np
 import math
 
@@ -25,90 +25,96 @@ if file is not None:
 
     # Let the user select the columns for the x and y axes
     x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns, key='x_col')
+    y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
 
-    if x_col == 'Angle of Attack':
+    add_additional_plot = st.sidebar.checkbox('Add additional plot')
+
+    # Check if the user selected "derivative" for x_col or y_col
+    if 'derivative' in [x_col, y_col]:
         with st.sidebar:
-            st.write('### Angle of Attack Options for X Axis')
-            # Add additional input field for interval
-            interval_x = st.number_input('Select the interval for Angle of Attack calculation (X axis)', min_value=1, value=10, key='interval_x')
-
-        # Let the user select the column for the y axis
-        y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
-
-    else:
-        # Let the user select the column for the y axis
-        y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
-
-    if y_col == 'Angle of Attack':
-        with st.sidebar:
-            st.write('### Angle of Attack Options for Y Axis')
-            # Add additional input field for interval
-            interval_y = st.number_input('Select the interval for Angle of Attack calculation (Y axis)', min_value=1, value=10, key='interval_y')
-
-        # Let the user select the column for the x axis
-        x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns, key='x_col_y')
+            st.write('### Derivative Options')
+            original_col = st.selectbox('Select the original column for the derivative', df.columns, key='original_col')
+            interval = st.number_input('Select the interval for derivative calculation', min_value=1, value=10,
+                                       key='interval')
 
     # Check if the user selected "Angle of Attack" for x_col or y_col
     if 'Angle of Attack' in [x_col, y_col]:
-        if x_col == 'Angle of Attack':
-            # Calculate the Angle of Attack for x_col
-            um_values = df['UM'].shift(-interval_x) - df['UM']
-            dup_values = df['DUP'].shift(-interval_x) - df['DUP']
-            angle_of_attack_values = (np.arctan2(um_values, dup_values) - np.arctan2(interval_x, interval_x)) * (180 / np.pi)
-            df.loc[1:interval_x, 'Angle of Attack'] = np.nan
-            df.loc[interval_x + 1:, 'Angle of Attack'] = angle_of_attack_values
+        with st.sidebar:
+            st.write('### Angle of Attack Options')
+            original_col = st.selectbox('Select the original column for the Angle of Attack', df.columns,
+                                        key='original_col')
+            interval = st.number_input('Select the interval for Angle of Attack calculation', min_value=1, value=10,
+                                       key='interval')
 
-        if y_col == 'Angle of Attack':
-            # Calculate the Angle of Attack for y_col
-            um_values = df['UM'].shift(-interval_y) - df['UM']
-            tvida_values = df['TVDa'].shift(-interval_y) - df['TVDa']
-            angle_of_attack_values = (np.arctan2(interval_y, tvida_values) - np.arctan2(um_values, interval_y)) * (180 / np.pi)
-            df.loc[1:interval_y, 'Angle of Attack'] = np.nan
-            df.loc[interval_y + 1:, 'Angle of Attack'] = angle_of_attack_values
+    # Calculate the derivative if selected
+    if 'derivative' in [x_col, y_col]:
+        derivative_values = (df[original_col].shift(-interval) - df[original_col]) / (
+                    df[y_col].shift(-interval) - df[y_col])
+        df.loc[1:interval, 'derivative'] = np.nan
+        df.loc[interval + 1:, 'derivative'] = derivative_values
 
-    # Create the first plot using Seaborn
-    fig1, ax1 = plt.subplots(figsize=(8, 6))
-    if 'Angle of Attack' not in [x_col, y_col]:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax1)
+    # Calculate the Angle of Attack if selected
+    if 'Angle of Attack' in [x_col, y_col]:
+        um_values = df['UM'].shift(-interval) - df['UM']
+        dup_values = df['DUP'].shift(-interval) - df['DUP']
+        tvida_values = df[original_col].shift(-interval) - df[original_col]
+
+        angle_of_attack_values = (np.arctan2(um_values + dup_values, interval) - np.arctan2(tvida_values, interval)) * (
+                    180 / math.pi)
+        df.loc[1:interval, 'Angle of Attack'] = np.nan
+        df.loc[interval + 1:, 'Angle of Attack'] = angle_of_attack_values
+
+    # Create the first plot using bokeh
+    p1 = figure(plot_width=600, plot_height=400)
+
+    if 'derivative' not in [x_col, y_col] and 'Angle of Attack' not in [x_col, y_col]:
+        p1.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8)
     else:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax1, label='Original')
-        sns.scatterplot(data=df, x=x_col, y='Angle of Attack', ax=ax1, label='Angle of Attack')
+        if 'derivative' in [x_col, y_col]:
+            p1.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8, legend_label='Original')
+            p1.scatter(df[x_col], df['derivative'], size=5, fill_color='red', alpha=0.8, legend_label='Derivative')
 
-    points1 = ax1.collections[0]
-    cursor1 = mplcursors.cursor(points1)
-    cursor1.connect(
-        "add",
-        lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
+        if 'Angle of Attack' in [x_col, y_col]:
+            p1.scatter(df[x_col], df[y_col], size=5, fill_color='blue', alpha=0.8, legend_label='Original')
+            p1.scatter(df[x_col], df['Angle of Attack'], size=5, fill_color='green', alpha=0.8,
+                       legend_label='Angle of Attack')
+
+    hover_tool = HoverTool(
+        tooltips=[
+            (x_col, '@' + x_col),
+            (y_col, '@' + y_col)
+        ]
     )
+    p1.add_tools(hover_tool)
 
-    # Create the second plot using Seaborn
-    if st.checkbox('Add additional plot'):
-        # Let the user select the columns for the x and y axes for the additional plot
-        x_col_additional = st.sidebar.selectbox('Select the column for the x axis (Additional Plot)', df.columns, key='x_col_additional')
-        y_col_additional = st.sidebar.selectbox('Select the column for the y axis (Additional Plot)', df.columns, key='y_col_additional')
+    p1.legend.location = 'top_left'
+    p1.legend.click_policy = 'hide'
 
-        # Calculate the Angle of Attack for the additional plot
-        um_values_additional = df['UM'].shift(-interval_x) - df['UM']
-        dup_values_additional = df['DUP'].shift(-interval_x) - df['DUP']
-        angle_of_attack_values_additional = (np.arctan2(um_values_additional, dup_values_additional) - np.arctan2(interval_x, interval_x)) * (180 / np.pi)
-        df['Angle of Attack Additional'] = np.nan
-        df.loc[1:interval_x, 'Angle of Attack Additional'] = angle_of_attack_values_additional
+    # Add the second plot if "Add additional plot" is selected
+    if add_additional_plot:
+        x_col_additional = st.sidebar.selectbox('Select the column for the additional plot (X axis)', df.columns,
+                                                key='x_col_additional')
+        y_col_additional = st.sidebar.selectbox('Select the column for the additional plot (Y axis)', df.columns,
+                                                key='y_col_additional')
 
-        fig2, ax2 = plt.subplots(figsize=(8, 6))
-        sns.scatterplot(data=df, x=x_col_additional, y=y_col_additional, ax=ax2)
-        sns.scatterplot(data=df, x=x_col_additional, y='Angle of Attack Additional', ax=ax2, label='Angle of Attack Additional')
+        p2 = figure(plot_width=600, plot_height=400)
 
-        points2 = ax2.collections[0]
-        cursor2 = mplcursors.cursor(points2)
-        cursor2.connect(
-            "add",
-            lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
+        p2.scatter(df[x_col_additional], df[y_col_additional], size=5, fill_color='green', alpha=0.8,
+                   legend_label='Additional Plot')
+
+        hover_tool_additional = HoverTool(
+            tooltips=[
+                (x_col_additional, '@' + x_col_additional),
+                (y_col_additional, '@' + y_col_additional)
+            ]
         )
+        p2.add_tools(hover_tool_additional)
 
-        # Arrange the plots in a 2-column layout
-        col1, col2 = st.columns(2)
-        col1.pyplot(fig1)
-        col2.pyplot(fig2)
+        p2.legend.location = 'top_left'
+        p2.legend.click_policy = 'hide'
+
+        # Display both plots
+        st.bokeh_chart(row(p1, p2))
     else:
-        # Render only the first plot
-        st.pyplot(fig1)
+        # Display only the first plot
+        st.bokeh_chart(p1)
