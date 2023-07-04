@@ -41,14 +41,15 @@ if file is not None:
     # Create the plot using Matplotlib
     fig, ax = plt.subplots()
 
-    if 'derivative' not in [x_col, y_col]:
-        ax.scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
-        ax.set_xlabel(x_col)
-        ax.set_ylabel(y_col)
-
     if add_derivative:
         derivative_col = 'derivative' if x_col != 'derivative' else y_col
         ax.scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
+        ax.set_xlabel(x_col)
+        ax.set_ylabel('Derivative of {}'.format(y_col if y_col != 'derivative' else x_col))
+    else:
+        ax.set_xlabel(x_col)
+        ax.set_ylabel(y_col)
+        ax.scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
 
     ax.legend()
     st.pyplot(fig)
