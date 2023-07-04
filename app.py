@@ -28,12 +28,12 @@ if file is not None:
     if add_derivative:
         interval = st.sidebar.number_input('Enter the interval for derivative calculation', min_value=1, value=10)
 
-        if x_col == 'derivative':
+        if x_col != 'derivative':
             derivative_values = (df[y_col].shift(-interval) - df[y_col]) / (df[x_col].shift(-interval) - df[x_col])
             df.loc[1:interval, 'derivative'] = np.nan
             df.loc[interval + 1:, 'derivative'] = derivative_values
 
-        if y_col == 'derivative':
+        if y_col != 'derivative':
             derivative_values = (df[x_col].shift(-interval) - df[x_col]) / (df[y_col].shift(-interval) - df[y_col])
             df.loc[1:interval, 'derivative'] = np.nan
             df.loc[interval + 1:, 'derivative'] = derivative_values
@@ -47,7 +47,8 @@ if file is not None:
         ax.set_ylabel(y_col)
 
     if add_derivative:
-        ax.scatter(df[x_col], df['derivative'], s=5, color='red', label='Derivative')
+        derivative_col = 'derivative' if x_col != 'derivative' else y_col
+        ax.scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
 
     ax.legend()
     st.pyplot(fig)
