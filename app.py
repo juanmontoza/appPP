@@ -33,20 +33,18 @@ if file is not None:
             original_col = st.selectbox('Select the original column for the derivative', df.columns, key='original_col')
             interval = st.number_input('Select the interval for derivative calculation', min_value=1, value=10, key='interval')
 
+        # Calculate the derivative if selected
+        derivative_values = (df[original_col].shift(-interval) - df[original_col]) / (df[y_col].shift(-interval) - df[y_col])
+        df.loc[1:interval, 'derivative'] = np.nan
+        df.loc[interval + 1:, 'derivative'] = derivative_values
+
     # Check if the user selected "Angle of Attack" for x_col or y_col
     if 'Angle of Attack' in [x_col, y_col]:
         with st.sidebar:
             st.write('### Angle of Attack Options')
             interval = st.number_input('Select the interval for Angle of Attack calculation', min_value=1, value=10, key='interval')
 
-    # Calculate the derivative if selected
-    if 'derivative' in [x_col, y_col]:
-        derivative_values = (df[original_col].shift(-interval) - df[original_col]) / (df[y_col].shift(-interval) - df[y_col])
-        df.loc[1:interval, 'derivative'] = np.nan
-        df.loc[interval + 1:, 'derivative'] = derivative_values
-
-    # Calculate the Angle of Attack if selected
-    if 'Angle of Attack' in [x_col, y_col]:
+        # Calculate the Angle of Attack if selected
         um_values = df['UM'].shift(-interval) + df['DUP'].iloc[0] - (df['UM'] + df['DUP'].iloc[0])
         tvida_values = df['TVDa'].shift(-interval) - df['TVDa'].iloc[0]
         mda_values = df['MDa'].shift(-interval) - df['MDa'].iloc[0]
@@ -55,38 +53,14 @@ if file is not None:
         df.loc[1:interval, 'Angle of Attack'] = np.nan
         df.loc[interval + 1:, 'Angle of Attack'] = angle_of_attack_values
 
-    # Show the first few rows of the DataFrame
+    # Show the DataFrame with Angle of Attack values
     st.write(df)
 
     # Create the first plot using Matplotlib
     fig, ax = plt.subplots()
 
     if 'derivative' not in [x_col, y_col] and 'Angle of Attack' not in [x_col, y_col]:
-        ax.scatter(df[x_col], df[y_col], s=5, color='blue', alpha=0.8)
-    else:
-        if 'derivative' in [x_col, y_col]:
-            ax.scatter(df[x_col], df[y_col], s=5, color='blue', alpha=0.8, label='Original')
-            ax.scatter(df[x_col], df['derivative'], s=5, color='red', alpha=0.8, label='Derivative')
-
-        if 'Angle of Attack' in [x_col, y_col]:
-            ax.scatter(df[x_col], df[y_col], s=5, color='blue', alpha=0.8, label='Original')
-            ax.scatter(df[x_col], df['Angle of Attack'], s=5, color='green', alpha=0.8, label='Angle of Attack')
-
-        ax.legend()
-
-    ax.set_xlabel(x_col)
-    ax.set_ylabel(y_col)
-
-    st.pyplot(fig)
-
-    # Create the second plot if "Add additional plot" is selected
-    if add_additional_plot:
-        x_col_additional = st.sidebar.selectbox('Select the column for the additional plot (X axis)', df.columns, key='x_col_additional')
-        y_col_additional = st.sidebar.selectbox('Select the column for the additional plot (Y axis)', df.columns, key='y_col_additional')
-
-        fig_additional, ax_additional = plt.subplots()
-        ax_additional.scatter(df[x_col_additional], df[y_col_additional], s=5, color='green', alpha=0.8)
-        ax_additional.set_xlabel(x_col_additional)
-        ax_additional.set_ylabel(y_col_additional)
-
-        st.pyplot(fig_additional)
+        ax.scatter(df[x_col], df[y_col], s=5, color='blue')
+        ax.set_xlabel(x_col)
+        ax.set_ylabel(y_col)
+        st.pyplot(fig)
