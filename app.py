@@ -23,9 +23,8 @@ def calculate_intersection_angle(segment1, segment2):
     slope1 = (y2 - y1) / (x2 - x1)
     slope2 = (y4 - y3) / (x4 - x3)
 
-    if slope1 == slope2:
-        #return None  # Lines are parallel, no intersection angle
-        return 0
+    if math.isclose(slope1, slope2):
+        return 0  # Lines are parallel, angle of attack is 0
 
     angle1 = math.atan(slope1)
     angle2 = math.atan(slope2)
