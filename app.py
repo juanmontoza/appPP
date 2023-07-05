@@ -24,6 +24,9 @@ if file is not None:
     x_col = st.sidebar.selectbox('Select the column for the x axis of the first plot', df.columns, key='x_col')
     y_col = st.sidebar.selectbox('Select the column for the y axis of the first plot', df.columns, key='y_col')
 
+    # Create the first plot using Matplotlib
+    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+
     add_derivative = st.sidebar.checkbox('Calculate Derivative')
 
     if add_derivative:
@@ -48,9 +51,6 @@ if file is not None:
                                           value=df[y_col].min())
     y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis of the first plot',
                                           value=df[y_col].max())
-
-    # Create the first plot using Matplotlib
-    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
 
     if add_derivative:
         derivative_col = 'derivative' if x_col != 'derivative' else y_col
