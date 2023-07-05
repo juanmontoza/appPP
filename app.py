@@ -52,7 +52,7 @@ if file is not None:
         segment1 = [(df['UM'][i], df['DUP'][i]) for i in range(segment_length)]
         segment2 = [(df['TVDa'][i], df['MDa'][i]) for i in range(segment_length)]
         angle_of_attack = calculate_intersection_angle(segment1, segment2)
-        df.loc[segment_length-1:, 'Angle of attack'] = angle_of_attack
+        df.loc[segment_length-1:, 'Angle of Attack'] = angle_of_attack
 
         # Set the axis range for Angle of attack
         y_range_min = 0
@@ -79,9 +79,9 @@ if file is not None:
     x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis of the first plot',
                                           value=df[x_col].max())
     y_range_min = st.sidebar.number_input('Set the minimum value for the y-axis of the first plot',
-                                          value=df[y_col].min())
+                                          value=np.nanmin(df[y_col]))  # Exclude NaN and Inf values
     y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis of the first plot',
-                                          value=df[y_col].max())
+                                          value=np.nanmax(df[y_col]))  # Exclude NaN and Inf values
 
     # Create the first plot using Matplotlib
     fig, ax = plt.subplots()
@@ -121,9 +121,9 @@ if file is not None:
         x_range_max_additional = st.sidebar.number_input('Set the maximum value for the x-axis of the second plot',
                                                          value=df[x_col_additional].max())
         y_range_min_additional = st.sidebar.number_input('Set the minimum value for the y-axis of the second plot',
-                                                         value=df[y_col_additional].min())
+                                                         value=np.nanmin(df[y_col_additional]))  # Exclude NaN and Inf values
         y_range_max_additional = st.sidebar.number_input('Set the maximum value for the y-axis of the second plot',
-                                                         value=df[y_col_additional].max())
+                                                         value=np.nanmax(df[y_col_additional]))  # Exclude NaN and Inf values
 
         # Create the second plot using Matplotlib
         fig_additional, ax_additional = plt.subplots()
