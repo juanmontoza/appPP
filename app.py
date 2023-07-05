@@ -48,8 +48,8 @@ if file is not None:
 
     if y_col == 'Angle of Attack':
         segment_length = st.sidebar.number_input('Enter the segment length', min_value=1, value=10)
-        segment1 = [(df['UM'][i], df['MDa'][i]) for i in range(segment_length)]
-        segment2 = [(df['TVDa'][i], df['MDa'][i]) for i in range(segment_length)]
+        segment1 = [(df['MDa'][i], df['UM'][i]) for i in range(segment_length)]
+        segment2 = [(df['MDa'][i], df['TVDa'][i]) for i in range(segment_length)]
         angle_of_attack = calculate_intersection_angle(segment1, segment2)
         df.loc[segment_length-1:, 'Angle of Attack'] = angle_of_attack
 
