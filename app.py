@@ -42,6 +42,12 @@ if file is not None:
             # Convert derivative to degrees
             df['derivative'] = np.degrees(df['derivative'])
 
+    # Set the axis ranges
+    x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis', value=df[x_col].min())
+    x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis', value=df[x_col].max())
+    y_range_min = st.sidebar.number_input('Set the minimum value for the y-axis', value=df[y_col].min())
+    y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis', value=df[y_col].max())
+
     # Create the plot using Matplotlib
     fig, ax = plt.subplots()
 
@@ -55,6 +61,8 @@ if file is not None:
         ax.set_ylabel(y_col)
         ax.scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
 
+    ax.set_xlim([x_range_min, x_range_max])
+    ax.set_ylim([y_range_min, y_range_max])
     ax.legend()
     st.pyplot(fig)
 
