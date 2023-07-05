@@ -13,7 +13,6 @@ st.sidebar.title('Options')
 # Upload the Excel file
 file = st.sidebar.file_uploader('Upload your Excel file', type=['xlsx', 'xls', 'xlsm'])
 
-
 def calculate_intersection_angle(segment1, segment2):
     x1, y1 = segment1[0]
     x2, y2 = segment1[1]
@@ -54,7 +53,7 @@ if file is not None:
         angle_of_attack = calculate_intersection_angle(segment1, segment2)
         df.loc[segment_length-1:, 'Angle of Attack'] = angle_of_attack
 
-        # Set the axis range for Angle of attack
+        # Set the axis range for Angle of Attack
         y_range_min = 0
         y_range_max = 90
 
@@ -79,9 +78,15 @@ if file is not None:
     x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis of the first plot',
                                           value=df[x_col].max())
     y_range_min = st.sidebar.number_input('Set the minimum value for the y-axis of the first plot',
-                                          value=np.nanmin(df[y_col]))  # Exclude NaN and Inf values
+                                          value=df[y_col].min())
     y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis of the first plot',
-                                          value=np.nanmax(df[y_col]))  # Exclude NaN and Inf values
+                                          value=df[y_col].max())
+
+    # Check for NaN and Inf values in the axis ranges
+    if np.isnan(y_range_min) or np.isinf(y_range_min):
+        y_range_min = 0
+    if np.isnan(y_range_max) or np.isinf(y_range_max):
+        y_range_max = 1
 
     # Create the first plot using Matplotlib
     fig, ax = plt.subplots()
@@ -95,13 +100,14 @@ if file is not None:
         ax.set_xlabel(x_col)
         ax.set_ylabel('Angle of Attack (degrees)')
         ax.scatter(df[x_col], df[y_col], s=5, color='green', label='Angle of Attack')
+        ax.set_ylim([y_range_min, y_range_max])
     else:
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
         ax.scatter(df[x_col], df[y_col], s=5, color='blue', label=y_col)
+        ax.set_ylim([y_range_min, y_range_max])
 
     ax.set_xlim([x_range_min, x_range_max])
-    ax.set_ylim([y_range_min, y_range_max])
     ax.legend()
     st.pyplot(fig)
 
@@ -121,9 +127,15 @@ if file is not None:
         x_range_max_additional = st.sidebar.number_input('Set the maximum value for the x-axis of the second plot',
                                                          value=df[x_col_additional].max())
         y_range_min_additional = st.sidebar.number_input('Set the minimum value for the y-axis of the second plot',
-                                                         value=np.nanmin(df[y_col_additional]))  # Exclude NaN and Inf values
+                                                         value=df[y_col_additional].min())
         y_range_max_additional = st.sidebar.number_input('Set the maximum value for the y-axis of the second plot',
-                                                         value=np.nanmax(df[y_col_additional]))  # Exclude NaN and Inf values
+                                                         value=df[y_col_additional].max())
+
+        # Check for NaN and Inf values in the axis ranges of the second plot
+        if np.isnan(y_range_min_additional) or np.isinf(y_range_min_additional):
+            y_range_min_additional = 0
+        if np.isnan(y_range_max_additional) or np.isinf(y_range_max_additional):
+            y_range_max_additional = 1
 
         # Create the second plot using Matplotlib
         fig_additional, ax_additional = plt.subplots()
@@ -137,5 +149,5 @@ if file is not None:
         ax_additional.legend()
         st.pyplot(fig_additional)
 
-    # Show the DataFrame with the calculated derivative
+    # Show the DataFrame with the calculated derivative and Angle of Attack
     st.write(df)
