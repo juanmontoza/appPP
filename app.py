@@ -101,7 +101,7 @@ if file is not None:
         ax.scatter(df[x_col], df[y_col], s=5, color='blue', label=y_col)
 
     ax.set_xlim([x_range_min, x_range_max])
-    ax.set_ylim([y_range_min, y_range_max])
+    ax.set_ylim([np.nanmin(df[y_col]), np.nanmax(df[y_col])])  # Exclude NaN and Inf values
     ax.legend()
     st.pyplot(fig)
 
