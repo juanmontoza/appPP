@@ -24,9 +24,6 @@ if file is not None:
     x_col = st.sidebar.selectbox('Select the column for the x axis of the first plot', df.columns, key='x_col')
     y_col = st.sidebar.selectbox('Select the column for the y axis of the first plot', df.columns, key='y_col')
 
-    # Create the first plot using Matplotlib
-    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-
     add_derivative = st.sidebar.checkbox('Calculate Derivative')
 
     if add_derivative:
@@ -37,29 +34,22 @@ if file is not None:
             df.loc[1:interval, 'derivative'] = np.nan
             df.loc[interval + 1:, 'derivative'] = derivative_values
 
-        if y_col != 'derivative':
-            derivative_values = (df[x_col].shift(-interval) - df[x_col]) / (df[y_col].shift(-interval) - df[y_col])
-            df.loc[1:interval, 'derivative'] = np.nan
-            df.loc[interval + 1:, 'derivative'] = derivative_values
-
     # Set the axis ranges for the first plot
-    x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis of the first plot',
-                                          value=df[x_col].min())
-    x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis of the first plot',
-                                          value=df[x_col].max())
-    y_range_min = st.sidebar.number_input('Set the minimum value for the y-axis of the first plot',
-                                          value=df[y_col].min())
-    y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis of the first plot',
-                                          value=df[y_col].max())
+    x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis of the first plot', value=df[x_col].min())
+    x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis of the first plot', value=df[x_col].max())
+    y_range_min = st.sidebar.number_input('Set the minimum value for the y-axis of the first plot', value=df[y_col].min())
+    y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis of the first plot', value=df[y_col].max())
 
-    if add_derivative:
-        derivative_col = 'derivative' if x_col != 'derivative' else y_col
-        ax[1].set_xlabel(x_col)
-        ax[1].set_ylabel('Derivative of {}'.format(y_col if x_col != 'derivative' else x_col))
-        ax[1].scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
-        ax[1].set_xlim([x_range_min, x_range_max])
-        ax[1].set_ylim([df[derivative_col].min(), df[derivative_col].max()])
-        ax[1].legend()
+    # Create the first plot using Matplotlib
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    # Plot the derivative values
+    ax.scatter(df[x_col], df['derivative'], s=5, color='red', label='Derivative')
+    ax.set_xlabel(x_col)
+    ax.set_ylabel('Derivative of {}'.format(y_col))
+    ax.set_xlim([x_range_min, x_range_max])
+    ax.set_ylim([df['derivative'].min(), df['derivative'].max()])
+    ax.legend()
 
     # Show the first plot
     st.pyplot(fig)
@@ -69,20 +59,14 @@ if file is not None:
 
     if add_second_plot:
         # Let the user select the columns for the x and y axes of the second plot
-        x_col_additional = st.sidebar.selectbox('Select the column for the x axis of the second plot', df.columns,
-                                                key='x_col_additional')
-        y_col_additional = st.sidebar.selectbox('Select the column for the y axis of the second plot', df.columns,
-                                                key='y_col_additional')
+        x_col_additional = st.sidebar.selectbox('Select the column for the x axis of the second plot', df.columns, key='x_col_additional')
+        y_col_additional = st.sidebar.selectbox('Select the column for the y axis of the second plot', df.columns, key='y_col_additional')
 
         # Set the axis ranges for the second plot
-        x_range_min_additional = st.sidebar.number_input('Set the minimum value for the x-axis of the second plot',
-                                                         value=df[x_col_additional].min())
-        x_range_max_additional = st.sidebar.number_input('Set the maximum value for the x-axis of the second plot',
-                                                         value=df[x_col_additional].max())
-        y_range_min_additional = st.sidebar.number_input('Set the minimum value for the y-axis of the second plot',
-                                                         value=df[y_col_additional].min())
-        y_range_max_additional = st.sidebar.number_input('Set the maximum value for the y-axis of the second plot',
-                                                         value=df[y_col_additional].max())
+        x_range_min_additional = st.sidebar.number_input('Set the minimum value for the x-axis of the second plot', value=df[x_col_additional].min())
+        x_range_max_additional = st.sidebar.number_input('Set the maximum value for the x-axis of the second plot', value=df[x_col_additional].max())
+        y_range_min_additional = st.sidebar.number_input('Set the minimum value for the y-axis of the second plot', value=df[y_col_additional].min())
+        y_range_max_additional = st.sidebar.number_input('Set the maximum value for the y-axis of the second plot', value=df[y_col_additional].max())
 
         # Create the second plot using Matplotlib
         fig_additional, ax_additional = plt.subplots(figsize=(6, 6))
@@ -98,5 +82,5 @@ if file is not None:
         # Show the second plot
         st.pyplot(fig_additional)
 
-    # Show the DataFrame with the calculated derivative and angle of attack
-    st.write(df)
+    # Show the DataFrame with the calculated derivative
+    st.write(df[['derivative']])
