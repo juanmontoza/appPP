@@ -20,9 +20,9 @@ if file is not None:
     # Create a "derivative" column
     df['derivative'] = np.nan
 
-    # Let the user select the columns for the x and y axes
-    x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns, key='x_col')
-    y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
+    # Let the user select the columns for the x and y axes of the first plot
+    x_col = st.sidebar.selectbox('Select the column for the x axis of the first plot', df.columns, key='x_col')
+    y_col = st.sidebar.selectbox('Select the column for the y axis of the first plot', df.columns, key='y_col')
 
     add_derivative = st.sidebar.checkbox('Calculate Derivative')
 
@@ -66,13 +66,48 @@ if file is not None:
     if add_derivative:
         derivative_col = 'derivative' if x_col != 'derivative' else y_col
         ax[1].set_xlabel(x_col)
-        ax[1].set_ylabel('Derivative of {} (degrees)'.format(y_col if y_col != 'derivative' else x_col))
+        ax[1].set_ylabel('Derivative of {}'.format(y_col if x_col != 'derivative' else x_col))
         ax[1].scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
         ax[1].set_xlim([x_range_min, x_range_max])
         ax[1].set_ylim([df[derivative_col].min(), df[derivative_col].max()])
         ax[1].legend()
 
+    # Show the first plot
     st.pyplot(fig)
 
-    # Show the DataFrame with the calculated derivative
+    # Add a checkbox for the second plot
+    add_second_plot = st.sidebar.checkbox('Add Additional Plot')
+
+    if add_second_plot:
+        # Let the user select the columns for the x and y axes of the second plot
+        x_col_additional = st.sidebar.selectbox('Select the column for the x axis of the second plot', df.columns,
+                                                key='x_col_additional')
+        y_col_additional = st.sidebar.selectbox('Select the column for the y axis of the second plot', df.columns,
+                                                key='y_col_additional')
+
+        # Set the axis ranges for the second plot
+        x_range_min_additional = st.sidebar.number_input('Set the minimum value for the x-axis of the second plot',
+                                                         value=df[x_col_additional].min())
+        x_range_max_additional = st.sidebar.number_input('Set the maximum value for the x-axis of the second plot',
+                                                         value=df[x_col_additional].max())
+        y_range_min_additional = st.sidebar.number_input('Set the minimum value for the y-axis of the second plot',
+                                                         value=df[y_col_additional].min())
+        y_range_max_additional = st.sidebar.number_input('Set the maximum value for the y-axis of the second plot',
+                                                         value=df[y_col_additional].max())
+
+        # Create the second plot using Matplotlib
+        fig_additional, ax_additional = plt.subplots(figsize=(6, 6))
+
+        # Plot the original values
+        ax_additional.set_xlabel(x_col_additional)
+        ax_additional.set_ylabel(y_col_additional)
+        ax_additional.scatter(df[x_col_additional], df[y_col_additional], s=5, color='green', label='Original')
+        ax_additional.set_xlim([x_range_min_additional, x_range_max_additional])
+        ax_additional.set_ylim([y_range_min_additional, y_range_max_additional])
+        ax_additional.legend()
+
+        # Show the second plot
+        st.pyplot(fig_additional)
+
+    # Show the DataFrame with the calculated derivative and angle of attack
     st.write(df)
