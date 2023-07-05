@@ -92,9 +92,9 @@ if file is not None:
         ax.set_xlabel(x_col)
         ax.set_ylabel('Derivative of {} '.format(y_col if y_col != 'derivative' else x_col))
     elif y_col == 'Angle of Attack':
-        ax.set_xlabel('UM')
+        ax.set_xlabel(x_col)
         ax.set_ylabel('Angle of Attack (degrees)')
-        ax.scatter(df['UM'], df['Angle of Attack'], s=5, color='green', label='Angle of Attack')
+        ax.scatter(df[x_col], df['Angle of Attack'], s=5, color='green', label='Angle of Attack')
     else:
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
