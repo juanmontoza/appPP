@@ -47,12 +47,15 @@ if file is not None:
     y_col = st.sidebar.selectbox('Select the column for the y axis of the first plot', df.columns, key='y_col')
 
     if y_col == 'Angle of Attack':
-        segment_length = st.sidebar.number_input('Enter the segment length', min_value=1, value=10)
-        segment1 = [(df['MDa'][i], df['UM'][i]) for i in range(segment_length)]
-        segment2 = [(df['MDa'][i], df['TVDa'][i]) for i in range(segment_length)]
-        angle_of_attack = calculate_intersection_angle(segment1, segment2)
-        df.loc[segment_length-1:, 'Angle of Attack'] = angle_of_attack
+        segment1_length = st.sidebar.number_input('Enter the length of Segment 1', min_value=1, value=10)
+        segment2_length = st.sidebar.number_input('Enter the length of Segment 2', min_value=1, value=10)
 
+        for i in range(len(df) - segment2_length):
+            segment1 = [(df['MDa'].iloc[i], df['UM'].iloc[i]), (df['MDa'].iloc[i+segment1_length], df['UM'].iloc[i+segment1_length])]
+            segment2 = [(df['MDa'].iloc[i], df['UM'].iloc[i]), (df['MDa'].iloc[i+segment2_length], df['UM'].iloc[i+segment2_length])]
+            angle = calculate_intersection_angle(segment1, segment2)
+            if angle is not None:
+                df.at[i, 'Angle of Attack'] = angle
         # Set the axis range for Angle of Attack
         y_range_min = 0
         y_range_max = 90
