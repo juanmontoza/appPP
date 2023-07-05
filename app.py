@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
-import mplcursors
 import numpy as np
+import math
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -18,86 +17,54 @@ if file is not None:
     # Load the file into a pandas DataFrame
     df = pd.read_excel(file)
 
-    # Create a "blanc" column named "derivative" and "Angle of Attack"
+    # Create a "derivative" column
     df['derivative'] = np.nan
-    df['Angle of Attack'] = np.nan
 
     # Let the user select the columns for the x and y axes
     x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns, key='x_col')
+    y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
 
-    if x_col == 'Angle of Attack':
-        with st.sidebar:
-            st.write('### Angle of Attack Options for X Axis')
-            # Add additional input field for interval
-            interval_x = st.number_input('Select the interval for Angle of Attack calculation (X axis)', min_value=1, value=10, key='interval_x')
+    add_derivative = st.sidebar.checkbox('Calculate Derivative')
 
-        # Let the user select the column for the y axis
-        y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
+    if add_derivative:
+        interval = st.sidebar.number_input('Enter the interval for derivative calculation', min_value=1, value=10)
 
+        if x_col != 'derivative':
+            derivative_values = (df[y_col].shift(-interval) - df[y_col]) / (df[x_col].shift(-interval) - df[x_col])
+            df.loc[1:interval, 'derivative'] = np.nan
+            df.loc[interval + 1:, 'derivative'] = derivative_values
+
+        if y_col != 'derivative':
+            derivative_values = (df[x_col].shift(-interval) - df[x_col]) / (df[y_col].shift(-interval) - df[y_col])
+            df.loc[1:interval, 'derivative'] = np.nan
+            df.loc[interval + 1:, 'derivative'] = derivative_values
+
+            # Convert derivative to degrees
+            df['derivative'] = np.degrees(df['derivative'])
+
+    # Set the axis ranges
+    x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis', value=df[x_col].min())
+    x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis', value=df[x_col].max())
+    y_range_min = st.sidebar.number_input('Set the minimum value for the y-axis', value=df[y_col].min())
+    y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis', value=df[y_col].max())
+
+    # Create the plot using Matplotlib
+    fig, ax = plt.subplots()
+
+    if add_derivative:
+        derivative_col = 'derivative' if x_col != 'derivative' else y_col
+        ax.scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
+        ax.set_xlabel(x_col)
+        ax.set_ylabel('Derivative of {} (degrees)'.format(y_col if y_col != 'derivative' else x_col))
     else:
-        # Let the user select the column for the y axis
-        y_col = st.sidebar.selectbox('Select the column for the y axis', df.columns, key='y_col')
+        ax.set_xlabel(x_col)
+        ax.set_ylabel(y_col)
+        ax.scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
 
-    if y_col == 'Angle of Attack':
-        with st.sidebar:
-            st.write('### Angle of Attack Options for Y Axis')
-            # Add additional input field for interval
-            interval_y = st.number_input('Select the interval for Angle of Attack calculation (Y axis)', min_value=1, value=10, key='interval_y')
+    ax.set_xlim([x_range_min, x_range_max])
+    ax.set_ylim([y_range_min, y_range_max])
+    ax.legend()
+    st.pyplot(fig)
 
-        # Let the user select the column for the x axis
-        x_col = st.sidebar.selectbox('Select the column for the x axis', df.columns, key='x_col_y')
-
-    # Check if the user selected "Angle of Attack" for x_col or y_col
-    if 'Angle of Attack' in [x_col, y_col]:
-        if x_col == 'Angle of Attack':
-            # Calculate the Angle of Attack for x_col
-            um_values = df['UM'].shift(-interval_x) - df['UM']
-            dup_values = df['DUP'].shift(-interval_x) - df['DUP']
-            angle_of_attack_values = (np.arctan2(um_values, dup_values) - np.arctan2(interval_x, interval_x)) * (180 / np.pi)
-            df.loc[1:interval_x, 'Angle of Attack'] = np.nan
-            df.loc[interval_x + 1:, 'Angle of Attack'] = angle_of_attack_values
-
-        if y_col == 'Angle of Attack':
-            # Calculate the Angle of Attack for y_col
-            um_values = df['UM'].shift(-interval_y) - df['UM']
-            tvida_values = df['TVDa'].shift(-interval_y) - df['TVDa']
-            angle_of_attack_values = (np.arctan2(um_values, interval_y) - np.arctan2(tvida_values, interval_y)) * (180 / np.pi)
-            df.loc[1:interval_y, 'Angle of Attack'] = np.nan
-            df.loc[interval_y + 1:, 'Angle of Attack'] = angle_of_attack_values
-
-    # Create the first plot using Seaborn
-    fig1, ax1 = plt.subplots()
-    if 'Angle of Attack' not in [x_col, y_col]:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax1)
-    else:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax1, label='Original')
-        sns.scatterplot(data=df, x=x_col, y='Angle of Attack', ax=ax1, label='Angle of Attack')
-
-    points1 = ax1.collections[0]
-    cursor1 = mplcursors.cursor(points1)
-    cursor1.connect(
-        "add",
-        lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
-    )
-
-    # Create the second plot using Seaborn
-    fig2, ax2 = plt.subplots()
-    if 'Angle of Attack' not in [x_col, y_col]:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax2)
-    else:
-        sns.scatterplot(data=df, x=x_col, y=y_col, ax=ax2, label='Original')
-        sns.scatterplot(data=df, x=x_col, y='Angle of Attack', ax=ax2, label='Angle of Attack')
-
-    points2 = ax2.collections[0]
-    cursor2 = mplcursors.cursor(points2)
-    cursor2.connect(
-        "add",
-        lambda sel: sel.annotation.set_text(f"({sel.target[0]:.2f}, {sel.target[1]:.2f})")
-    )
-
-    # Render the plots using Streamlit columns
-    col1, col2 = st.columns(2)
-    with col1:
-        st.pyplot(fig1)
-    with col2:
-        st.pyplot(fig2)
+    # Show the DataFrame with the calculated derivative
+    st.write(df)
