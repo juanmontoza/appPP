@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 
 # Title of the app
 st.title('Pluspetrol Template')
@@ -48,7 +47,7 @@ if file is not None:
     ax.set_xlabel(x_col)
     ax.set_ylabel('Derivative of {}'.format(y_col))
     ax.set_xlim([x_range_min, x_range_max])
-    ax.set_ylim([df['derivative'].min(), df['derivative'].max()])
+    ax.set_ylim([np.nanmin(df['derivative']), np.nanmax(df['derivative'])])  # Exclude NaN and Inf values
     ax.legend()
 
     # Show the first plot
@@ -69,12 +68,12 @@ if file is not None:
         y_range_max_additional = st.sidebar.number_input('Set the maximum value for the y-axis of the second plot', value=df[y_col_additional].max())
 
         # Create the second plot using Matplotlib
-        fig_additional, ax_additional = plt.subplots(figsize=(6, 6))
+        fig_additional, ax_additional = plt.subplots(figsize=(8, 6))
 
         # Plot the original values
+        ax_additional.scatter(df[x_col_additional], df[y_col_additional], s=5, color='green', label='Original')
         ax_additional.set_xlabel(x_col_additional)
         ax_additional.set_ylabel(y_col_additional)
-        ax_additional.scatter(df[x_col_additional], df[y_col_additional], s=5, color='green', label='Original')
         ax_additional.set_xlim([x_range_min_additional, x_range_max_additional])
         ax_additional.set_ylim([y_range_min_additional, y_range_max_additional])
         ax_additional.legend()
