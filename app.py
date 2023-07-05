@@ -39,9 +39,6 @@ if file is not None:
             df.loc[1:interval, 'derivative'] = np.nan
             df.loc[interval + 1:, 'derivative'] = derivative_values
 
-            # Convert derivative to degrees
-            df['derivative'] = np.degrees(df['derivative'])
-
     # Set the axis ranges
     x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis', value=df[x_col].min())
     x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis', value=df[x_col].max())
@@ -55,11 +52,11 @@ if file is not None:
         derivative_col = 'derivative' if x_col != 'derivative' else y_col
         ax.scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
         ax.set_xlabel(x_col)
-        ax.set_ylabel('Derivative of {} (degrees)'.format(y_col if y_col != 'derivative' else x_col))
+        ax.set_ylabel('Derivative of {} '.format(y_col if y_col != 'derivative' else x_col))
     else:
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
-        ax.scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
+        ax.scatter(df[x_col], df[y_col], s=5, color='blue', label=y_col)
 
     ax.set_xlim([x_range_min, x_range_max])
     ax.set_ylim([y_range_min, y_range_max])
