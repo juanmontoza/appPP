@@ -16,9 +16,6 @@ if file is not None:
     # Load the file into a pandas DataFrame
     df = pd.read_excel(file)
 
-    # Create a "derivative" column
-    df['derivative'] = np.nan
-
     # Let the user select the columns for the x and y axes of the first plot
     x_col = st.sidebar.selectbox('Select the column for the x axis of the first plot', df.columns, key='x_col')
     y_col = st.sidebar.selectbox('Select the column for the y axis of the first plot', df.columns, key='y_col')
@@ -30,8 +27,8 @@ if file is not None:
 
         if x_col != 'derivative':
             derivative_values = (df[y_col].shift(-interval) - df[y_col]) / (df[x_col].shift(-interval) - df[x_col])
-            df.loc[1:interval, 'derivative'] = np.nan
-            df.loc[interval + 1:, 'derivative'] = derivative_values
+            derivative_values = derivative_values.replace([np.inf, -np.inf], np.nan)
+            df['derivative'] = derivative_values
 
     # Set the axis ranges for the first plot
     x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis of the first plot', value=df[x_col].min())
@@ -42,13 +39,18 @@ if file is not None:
     # Create the first plot using Matplotlib
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    # Plot the derivative values
-    ax.scatter(df[x_col], df['derivative'], s=5, color='red', label='Derivative')
+    # Plot the original values
+    ax.scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
     ax.set_xlabel(x_col)
-    ax.set_ylabel('Derivative of {}'.format(y_col))
+    ax.set_ylabel(y_col)
     ax.set_xlim([x_range_min, x_range_max])
-    ax.set_ylim([np.nanmin(df['derivative']), np.nanmax(df['derivative'])])  # Exclude NaN and Inf values
+    ax.set_ylim([y_range_min, y_range_max])
     ax.legend()
+
+    if add_derivative:
+        derivative_col = 'derivative' if x_col != 'derivative' else y_col
+        ax.scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
+        ax.set_ylabel('Derivative of {}'.format(y_col if x_col != 'derivative' else x_col))
 
     # Show the first plot
     st.pyplot(fig)
@@ -82,4 +84,5 @@ if file is not None:
         st.pyplot(fig_additional)
 
     # Show the DataFrame with the calculated derivative
-    st.write(df[['derivative']])
+    if add_derivative:
+        st.write(df[['derivative']])
