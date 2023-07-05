@@ -39,9 +39,6 @@ if file is not None:
             df.loc[1:interval, 'derivative'] = np.nan
             df.loc[interval + 1:, 'derivative'] = derivative_values
 
-            # Convert derivative to degrees
-            df['derivative'] = np.degrees(df['derivative'])
-
     # Set the axis ranges for the first plot
     x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis of the first plot',
                                           value=df[x_col].min())
@@ -54,14 +51,6 @@ if file is not None:
 
     # Create the first plot using Matplotlib
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-
-    # Plot the original values
-    ax[0].set_xlabel(x_col)
-    ax[0].set_ylabel(y_col)
-    ax[0].scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
-    ax[0].set_xlim([x_range_min, x_range_max])
-    ax[0].set_ylim([y_range_min, y_range_max])
-    ax[0].legend()
 
     if add_derivative:
         derivative_col = 'derivative' if x_col != 'derivative' else y_col
