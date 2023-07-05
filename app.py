@@ -42,28 +42,36 @@ if file is not None:
             # Convert derivative to degrees
             df['derivative'] = np.degrees(df['derivative'])
 
-    # Set the axis ranges
-    x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis', value=df[x_col].min())
-    x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis', value=df[x_col].max())
-    y_range_min = st.sidebar.number_input('Set the minimum value for the y-axis', value=df[y_col].min())
-    y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis', value=df[y_col].max())
+    # Set the axis ranges for the first plot
+    x_range_min = st.sidebar.number_input('Set the minimum value for the x-axis of the first plot',
+                                          value=df[x_col].min())
+    x_range_max = st.sidebar.number_input('Set the maximum value for the x-axis of the first plot',
+                                          value=df[x_col].max())
+    y_range_min = st.sidebar.number_input('Set the minimum value for the y-axis of the first plot',
+                                          value=df[y_col].min())
+    y_range_max = st.sidebar.number_input('Set the maximum value for the y-axis of the first plot',
+                                          value=df[y_col].max())
 
-    # Create the plot using Matplotlib
-    fig, ax = plt.subplots()
+    # Create the first plot using Matplotlib
+    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Plot the original values
+    ax[0].set_xlabel(x_col)
+    ax[0].set_ylabel(y_col)
+    ax[0].scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
+    ax[0].set_xlim([x_range_min, x_range_max])
+    ax[0].set_ylim([y_range_min, y_range_max])
+    ax[0].legend()
 
     if add_derivative:
         derivative_col = 'derivative' if x_col != 'derivative' else y_col
-        ax.scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
-        ax.set_xlabel(x_col)
-        ax.set_ylabel('Derivative of {} (degrees)'.format(y_col if y_col != 'derivative' else x_col))
-    else:
-        ax.set_xlabel(x_col)
-        ax.set_ylabel(y_col)
-        ax.scatter(df[x_col], df[y_col], s=5, color='blue', label='Original')
+        ax[1].set_xlabel(x_col)
+        ax[1].set_ylabel('Derivative of {} (degrees)'.format(y_col if y_col != 'derivative' else x_col))
+        ax[1].scatter(df[x_col], df[derivative_col], s=5, color='red', label='Derivative')
+        ax[1].set_xlim([x_range_min, x_range_max])
+        ax[1].set_ylim([df[derivative_col].min(), df[derivative_col].max()])
+        ax[1].legend()
 
-    ax.set_xlim([x_range_min, x_range_max])
-    ax.set_ylim([y_range_min, y_range_max])
-    ax.legend()
     st.pyplot(fig)
 
     # Show the DataFrame with the calculated derivative
